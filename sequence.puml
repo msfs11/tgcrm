@@ -1,0 +1,43 @@
+@startuml
+title Telegram Mini-CRM on Cloudflare Free Tier
+
+actor Client as "Lead / client"
+participant TG as "Telegram Bot API"
+participant CF as "Cloudflare Worker\n(webhook + bot logic)"
+database D1 as "Cloudflare D1\n(SQLite)"
+participant Group as "Admin supergroup\n(forum topics)"
+actor Admin as "Admin"
+
+Client -> TG : t.me/bot?start=website
+TG -> CF : webhook POST\nX-Telegram-Bot-Api-Secret-Token
+CF -> CF : validate secret token
+CF -> TG : sendMessage (Q1 buttons)
+TG --> Client : business type + Other
+
+Client -> TG : callback q1:ecommerce
+TG -> CF : webhook POST (callback_query)
+CF -> D1 : upsert draft (business_type)
+CF -> TG : sendMessage (Q2 buttons)
+TG --> Client : request type + Other
+
+Client -> TG : callback q2:recruiting
+TG -> CF : webhook POST (callback_query)
+CF -> D1 : SELECT lead by user_chat_id
+CF -> TG : createForumTopic
+TG -> Group : new lead topic
+CF -> D1 : INSERT lead (chat_id, topic_id)
+CF -> TG : lead card in topic
+
+Client -> TG : sends message
+TG -> CF : webhook POST (message)
+CF -> D1 : SELECT topic_id WHERE user_chat_id = ?
+CF -> TG : copyMessage to topic
+
+Admin -> Group : replies in topic
+Group -> TG : group message update
+TG -> CF : webhook POST (message)
+CF -> CF : from.id == ADMIN_USER_ID
+CF -> D1 : SELECT user_chat_id WHERE topic_id = ?
+CF -> TG : copyMessage to client
+
+@enduml

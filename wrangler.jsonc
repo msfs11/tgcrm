@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tgcrm",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-07",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tgcrm-db",
+      "database_id": "5ee5d5f2-742b-43a2-bc20-126da586b187"
+    }
+  ]
+}
